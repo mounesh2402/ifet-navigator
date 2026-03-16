@@ -827,17 +827,76 @@ function navigateToSelected() {
 function initGPS() {
   if (!navigator.geolocation) {
     document.getElementById('gps-status').textContent = 'No GPS';
+    showManualLocationOption();
     return;
   }
+
+  document.getElementById('gps-status').textContent = 'Locating...';
+
+  // Try with timeout
+  const gpsTimeout = setTimeout(() => {
+    if (!userLat) {
+      document.getElementById('gps-status').textContent = '⚠️ GPS Slow';
+      showManualLocationOption();
+    }
+  }, 8000);
+
   navigator.geolocation.watchPosition(pos => {
+    clearTimeout(gpsTimeout);
     userLat = pos.coords.latitude;
     userLon = pos.coords.longitude;
     document.getElementById('gps-status').textContent = 'GPS ✓';
+    // Hide manual option if showing
+    const manual = document.getElementById('manual-loc-bar');
+    if (manual) manual.style.display = 'none';
     buildList(document.getElementById('search-input').value);
     updateARDestination();
-  }, () => {
-    document.getElementById('gps-status').textContent = 'No GPS';
-  }, { enableHighAccuracy: true });
+  }, (err) => {
+    clearTimeout(gpsTimeout);
+    document.getElementById('gps-status').textContent = '⚠️ No GPS';
+    showManualLocationOption();
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+}
+
+function showManualLocationOption() {
+  // Show a bar to let user set location to campus center manually
+  let bar = document.getElementById('manual-loc-bar');
+  if (bar) { bar.style.display = 'flex'; return; }
+
+  bar = document.createElement('div');
+  bar.id = 'manual-loc-bar';
+  bar.style.cssText = `
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(10,10,26,0.97);
+    border-top:1px solid #f72585;
+    padding:12px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+    z-index:9999; gap:10px;
+  `;
+  bar.innerHTML = `
+    <div style="flex:1">
+      <div style="font-family:'Orbitron',monospace;font-size:11px;color:#f72585;margin-bottom:3px">📍 GPS NOT FOUND</div>
+      <div style="font-size:11px;color:rgba(224,224,255,0.6)">Use campus center as your location?</div>
+    </div>
+    <button onclick="useManualLocation()" style="
+      background:linear-gradient(135deg,#7209b7,#f72585);
+      border:none; border-radius:10px; padding:10px 16px;
+      color:white; font-family:'Orbitron',monospace;
+      font-size:10px; font-weight:700; cursor:pointer; white-space:nowrap;
+    ">USE CAMPUS GPS</button>
+  `;
+  document.body.appendChild(bar);
+}
+
+function useManualLocation() {
+  // Set location to IFET College of Engineering approximate center
+  userLat = 11.6843;
+  userLon = 79.7667;
+  document.getElementById('gps-status').textContent = '📍 Campus GPS';
+  document.getElementById('manual-loc-bar').style.display = 'none';
+  buildList(document.getElementById('search-input').value);
+  updateARDestination();
+  alert('✅ Location set to IFET Campus!\nDistances are now calculated from campus center.');
 }
 
 // ══════════════════════════════════════════
