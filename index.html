@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>IFET Campus Navigator</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --primary: #00f5d4;
+    --secondary: #f72585;
+    --accent: #7209b7;
+    --bg: #0a0a1a;
+    --bg2: #0f0f2d;
+    --card: rgba(255,255,255,0.05);
+    --text: #e0e0ff;
+    --glow: 0 0 20px rgba(0,245,212,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--bg2), var(--accent));
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0,245,212,0.3);
+    box-shadow: 0 2px 20px rgba(114,9,183,0.5);
+    z-index: 100;
+  }
+  .header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--primary);
+    text-shadow: var(--glow);
+    letter-spacing: 2px;
+  }
+  .header p { font-size: 10px; color: rgba(224,224,255,0.6); letter-spacing: 1px; }
+  .gps-badge {
+    background: rgba(0,245,212,0.1);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 10px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .gps-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.4)} }
+
+  /* ── TAB BAR ── */
+  .tabs {
+    display: flex;
+    background: var(--bg2);
+    border-bottom: 1px solid rgba(0,245,212,0.15);
+  }
+  .tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    color: rgba(224,224,255,0.4);
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+  }
+  .tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    text-shadow: var(--glow);
+  }
+  .tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  /* ── CONTENT PANELS ── */
+  .panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .panel.active { display: flex; }
+
+  /* ── SEARCH BAR ── */
+  .search-wrap {
+    padding: 12px 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid rgba(0,245,212,0.1);
+  }
+  .search-box {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(0,245,212,0.3);
+    border-radius: 25px;
+    padding: 10px 18px;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.3s, box-shadow 0.3s;
+  }
+  .search-box:focus {
+    border-color: var(--primary);
+    box-shadow: var(--glow);
+  }
+  .search-box::placeholder { color: rgba(224,224,255,0.3); }
+
+  /* ── BUILDING LIST ── */
+  .building-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .building-list::-webkit-scrollbar { width: 4px; }
+  .building-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  .building-card {
+    background: var(--card);
+    border: 1px solid rgba(0,245,212,0.15);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .building-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--primary);
+    border-radius: 3px 0 0 3px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .building-card:hover, .building-card.selected {
+    background: rgba(0,245,212,0.08);
+    border-color: var(--primary);
+    transform: translateX(4px);
+    box-shadow: var(--glow);
+  }
+  .building-card:hover::before, .building-card.selected::before { opacity: 1; }
+
+  .building-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .building-info { flex: 1; }
+  .building-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 3px;
+  }
+  .building-desc { font-size: 11px; color: rgba(224,224,255,0.5); }
+  .building-dist {
+    font-size: 11px;
+    color: var(--secondary);
+    font-weight: 600;
+    text-align: right;
+  }
+  .nav-btn {
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: opacity 0.2s;
+  }
+  .nav-btn:hover { opacity: 0.8; }
+
+  /* ── MAP PANEL ── */
+  #map-panel {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+  }
+  .campus-map {
+    width: 100%;
+    height: 100%;
+    background: #0d1117;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* SVG map styles */
+  .map-svg { width: 100%; height: 100%; }
+  .road { fill: #1a1a3e; stroke: rgba(0,245,212,0.2); stroke-width: 1; }
+  .road-path { fill: #1e2040; }
+  .building-shape {
+    fill: rgba(114,9,183,0.4);
+    stroke: rgba(0,245,212,0.5);
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: fill 0.3s;
+  }
+  .building-shape:hover { fill: rgba(0,245,212,0.3); }
+  .building-shape.highlighted { fill: rgba(247,37,133,0.5); stroke: var(--secondary); stroke-width: 2.5; }
+  .map-label {
+    fill: var(--primary);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 8px;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .gate-label { fill: #ffd60a; font-size: 7px; }
+  .road-label { fill: rgba(0,245,212,0.4); font-size: 7px; text-anchor: middle; }
+
+  /* User dot on map */
+  .user-dot {
+    fill: var(--primary);
+    filter: drop-shadow(0 0 6px var(--primary));
+    animation: pulse 1.5s infinite;
+  }
+
+  /* Map controls */
+  .map-controls {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .map-btn {
+    width: 36px; height: 36px;
+    background: rgba(15,15,45,0.9);
+    border: 1px solid rgba(0,245,212,0.3);
+    border-radius: 8px;
+    color: var(--primary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .map-btn:hover { background: rgba(0,245,212,0.15); }
+
+  /* Selected building info card on map */
+  .map-info-card {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 64px;
+    background: rgba(10,10,26,0.95);
+    border: 1px solid var(--primary);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: none;
+    box-shadow: var(--glow);
+  }
+  .map-info-card.visible { display: block; }
+  .mic-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .mic-desc { font-size: 11px; color: rgba(224,224,255,0.6); margin-bottom: 8px; }
+  .mic-nav {
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    width: 100%;
+  }
+
+  /* ── AR PANEL ── */
+  #ar-panel {
+    flex: 1;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+  }
+  #ar-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  #ar-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .ar-status {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 11px;
+    color: var(--primary);
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .ar-compass {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 50px; height: 50px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: 10;
+  }
+  .ar-destination {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    border: 1px solid var(--secondary);
+    border-radius: 14px;
+    padding: 10px 20px;
+    text-align: center;
+    z-index: 10;
+    min-width: 200px;
+  }
+  .ar-dest-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--secondary);
+    margin-bottom: 3px;
+  }
+  .ar-dest-dist { font-size: 11px; color: rgba(255,255,255,0.7); }
+  .ar-no-dest {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    z-index: 10;
+    white-space: nowrap;
+  }
+
+  /* AR markers overlay */
+  .ar-marker {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .ar-marker-label {
+    background: rgba(0,0,0,0.85);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    color: var(--primary);
+    white-space: nowrap;
+    margin-bottom: 4px;
+  }
+  .ar-marker-arrow {
+    font-size: 22px;
+    filter: drop-shadow(0 0 6px var(--primary));
+    animation: bounce 1s infinite;
+  }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+
+  /* ── NO CAMERA FALLBACK ── */
+  .no-camera {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+  }
+  .no-camera-icon { font-size: 48px; }
+  .no-camera h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--primary);
+    font-size: 14px;
+  }
+  .no-camera p { font-size: 12px; color: rgba(224,224,255,0.5); line-height: 1.6; }
+  .allow-btn {
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    border: none;
+    border-radius: 25px;
+    padding: 12px 28px;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+
+  /* Grid overlay effect */
+  .grid-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(0,245,212,0.4);
+    padding: 8px 16px 4px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>IFET NAVIGATOR</h1>
+    <p>CAMPUS AR GUIDE</p>
+  </div>
+  <div class="gps-badge">
+    <div class="gps-dot"></div>
+    <span id="gps-status">Locating...</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('list')">
+    <span class="tab-icon">🏛️</span>BUILDINGS
+  </div>
+  <div class="tab" onclick="switchTab('map')">
+    <span class="tab-icon">🗺️</span>MAP
+  </div>
+  <div class="tab" onclick="switchTab('ar')">
+    <span class="tab-icon">📱</span>AR VIEW
+  </div>
+</div>
+
+<!-- ══ PANEL 1: BUILDING LIST ══ -->
+<div class="panel active" id="list-panel">
+  <div class="search-wrap">
+    <input class="search-box" type="text" id="search-input" placeholder="🔍  Search buildings, labs, rooms..." oninput="filterBuildings()"/>
+  </div>
+  <div class="section-title">ALL LOCATIONS</div>
+  <div class="building-list" id="building-list"></div>
+</div>
+
+<!-- ══ PANEL 2: MAP ══ -->
+<div class="panel" id="map-panel">
+  <div class="campus-map">
+    <svg class="map-svg" viewBox="0 0 320 580" xmlns="http://www.w3.org/2000/svg" id="campus-svg">
+      <!-- Background -->
+      <rect width="320" height="580" fill="#0a0a1a"/>
+
+      <!-- Grid -->
+      <defs>
+        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,245,212,0.04)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="320" height="580" fill="url(#grid)"/>
+
+      <!-- MAIN VERTICAL ROAD (shaded, center) -->
+      <rect x="130" y="20" width="60" height="540" fill="#1a1a3e" rx="4"/>
+      <!-- Road lane markings -->
+      <line x1="160" y1="30" x2="160" y2="550" stroke="rgba(0,245,212,0.15)" stroke-width="1" stroke-dasharray="12,8"/>
+      <text x="160" y="15" class="road-label">MAIN ROAD</text>
+
+      <!-- HORIZONTAL ROAD (side branch to right) -->
+      <rect x="190" y="240" width="110" height="50" fill="#1a1a3e" rx="4"/>
+      <line x1="200" y1="265" x2="295" y2="265" stroke="rgba(0,245,212,0.15)" stroke-width="1" stroke-dasharray="8,6"/>
+
+      <!-- MAIN GATE (left side) -->
+      <rect x="20" y="248" width="110" height="34" fill="#1a1a3e" rx="4"/>
+      <line x1="30" y1="265" x2="130" y2="265" stroke="rgba(255,214,10,0.3)" stroke-width="1" stroke-dasharray="6,4"/>
+
+      <!-- Gate marker -->
+      <rect x="20" y="252" width="30" height="26" fill="rgba(255,214,10,0.15)" stroke="#ffd60a" stroke-width="1.5" rx="4"/>
+      <text x="35" y="268" class="map-label gate-label" style="fill:#ffd60a">GATE</text>
+
+      <!-- BUILDINGS on main road -->
+      <!-- Class C (top) -->
+      <rect id="bld-classC" x="76" y="40" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('classC')"/>
+      <text x="103" y="65" class="map-label">CLASS</text>
+      <text x="103" y="78" class="map-label">C</text>
+
+      <!-- Class B -->
+      <rect id="bld-classB" x="76" y="105" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('classB')"/>
+      <text x="103" y="130" class="map-label">CLASS</text>
+      <text x="103" y="143" class="map-label">B</text>
+
+      <!-- Class A -->
+      <rect id="bld-classA" x="76" y="170" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('classA')"/>
+      <text x="103" y="195" class="map-label">CLASS</text>
+      <text x="103" y="208" class="map-label">A</text>
+
+      <!-- SD Lab -->
+      <rect id="bld-sdLab" x="190" y="180" width="54" height="50" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('sdLab')"/>
+      <text x="217" y="203" class="map-label">SD LAB</text>
+
+      <!-- Mech Lab (right branch) -->
+      <rect id="bld-mechLab" x="210" y="300" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('mechLab')"/>
+      <text x="237" y="325" class="map-label">MECH</text>
+      <text x="237" y="338" class="map-label">LAB</text>
+
+      <!-- Library (far right) -->
+      <rect id="bld-library" x="270" y="230" width="44" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('library')"/>
+      <text x="292" y="255" class="map-label">LIB</text>
+      <text x="292" y="268" class="map-label">RARY</text>
+
+      <!-- Project Lab -->
+      <rect id="bld-projectLab" x="76" y="305" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('projectLab')"/>
+      <text x="103" y="328" class="map-label">PROJECT</text>
+      <text x="103" y="341" class="map-label">LAB</text>
+
+      <!-- Administration (bottom) -->
+      <rect id="bld-admin" x="76" y="430" width="54" height="70" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('admin')"/>
+      <text x="103" y="460" class="map-label">ADMIN</text>
+      <text x="103" y="473" class="map-label">BLOCK</text>
+
+      <!-- You are here dot -->
+      <circle id="user-map-dot" cx="160" cy="265" r="6" class="user-dot"/>
+      <circle cx="160" cy="265" r="12" fill="none" stroke="rgba(0,245,212,0.3)" stroke-width="1">
+        <animate attributeName="r" from="8" to="20" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <text x="160" y="292" class="map-label" style="fill:#ffd60a;font-size:7px">YOU</text>
+
+      <!-- North indicator -->
+      <text x="300" y="30" class="map-label" style="fill:var(--secondary);font-size:14px">N</text>
+      <text x="300" y="44" class="map-label" style="fill:var(--secondary);font-size:10px">↑</text>
+    </svg>
+
+    <!-- Info card -->
+    <div class="map-info-card" id="map-info-card">
+      <div class="mic-name" id="mic-name">Building Name</div>
+      <div class="mic-desc" id="mic-desc">Description</div>
+      <button class="mic-nav" onclick="navigateToSelected()">🧭 NAVIGATE IN AR</button>
+    </div>
+
+    <div class="map-controls">
+      <button class="map-btn" title="Center">⊕</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: AR VIEW ══ -->
+<div class="panel" id="ar-panel">
+  <div class="ar-status" id="ar-status">📍 Initializing AR...</div>
+  <div class="ar-compass" id="ar-compass">🧭</div>
+
+  <video id="ar-video" autoplay playsinline muted></video>
+  <canvas id="ar-canvas"></canvas>
+
+  <!-- AR markers will be injected here -->
+  <div id="ar-markers"></div>
+
+  <div class="ar-destination" id="ar-dest" style="display:none">
+    <div class="ar-dest-name" id="ar-dest-name">Destination</div>
+    <div class="ar-dest-dist" id="ar-dest-dist">-- m away</div>
+  </div>
+  <div class="ar-no-dest" id="ar-no-dest">← Select a building to navigate</div>
+
+  <div class="no-camera" id="no-camera" style="display:none">
+    <div class="no-camera-icon">📷</div>
+    <h3>CAMERA NEEDED</h3>
+    <p>AR navigation requires camera access.<br/>Please allow camera permission and use HTTPS.</p>
+    <button class="allow-btn" onclick="startAR()">ENABLE CAMERA</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// CAMPUS DATA
+// Based on IFET College of Engineering map
+// Coordinates are relative offsets from gate
+// ══════════════════════════════════════════
+
+// IFET College approx center
+const CAMPUS_CENTER = { lat: 11.6843, lon: 79.7667 };
+
+const BUILDINGS = [
+  {
+    id: 'classC',
+    name: 'Class C',
+    desc: 'Classroom Block C — Lectures & Theory',
+    icon: '🏫',
+    lat: CAMPUS_CENTER.lat + 0.0009,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-classC',
+    color: '#00f5d4'
+  },
+  {
+    id: 'classB',
+    name: 'Class B',
+    desc: 'Classroom Block B — Lectures & Theory',
+    icon: '🏫',
+    lat: CAMPUS_CENTER.lat + 0.0006,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-classB',
+    color: '#00f5d4'
+  },
+  {
+    id: 'classA',
+    name: 'Class A',
+    desc: 'Classroom Block A — Lectures & Theory',
+    icon: '🏫',
+    lat: CAMPUS_CENTER.lat + 0.0003,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-classA',
+    color: '#00f5d4'
+  },
+  {
+    id: 'sdLab',
+    name: 'SD Lab',
+    desc: 'Software Development Laboratory',
+    icon: '💻',
+    lat: CAMPUS_CENTER.lat + 0.0003,
+    lon: CAMPUS_CENTER.lon + 0.0003,
+    mapId: 'bld-sdLab',
+    color: '#7209b7'
+  },
+  {
+    id: 'mechLab',
+    name: 'Mech Lab',
+    desc: 'Mechanical Engineering Laboratory',
+    icon: '⚙️',
+    lat: CAMPUS_CENTER.lat - 0.0001,
+    lon: CAMPUS_CENTER.lon + 0.0004,
+    mapId: 'bld-mechLab',
+    color: '#f72585'
+  },
+  {
+    id: 'library',
+    name: 'Library',
+    desc: 'Central Library — Books & Resources',
+    icon: '📚',
+    lat: CAMPUS_CENTER.lat + 0.0001,
+    lon: CAMPUS_CENTER.lon + 0.0006,
+    mapId: 'bld-library',
+    color: '#4cc9f0'
+  },
+  {
+    id: 'projectLab',
+    name: 'Project Lab',
+    desc: 'Final Year & Research Project Lab',
+    icon: '🔬',
+    lat: CAMPUS_CENTER.lat - 0.0003,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-projectLab',
+    color: '#f77f00'
+  },
+  {
+    id: 'admin',
+    name: 'Administration',
+    desc: 'Admin Block — Office & Principal',
+    icon: '🏢',
+    lat: CAMPUS_CENTER.lat - 0.0007,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-admin',
+    color: '#e9c46a'
+  },
+  {
+    id: 'mainGate',
+    name: 'Main Gate',
+    desc: 'Main Entrance — Campus Entry Point',
+    icon: '🚪',
+    lat: CAMPUS_CENTER.lat,
+    lon: CAMPUS_CENTER.lon - 0.0004,
+    mapId: null,
+    color: '#ffd60a'
+  }
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let userLat = null, userLon = null;
+let selectedBuilding = null;
+let heading = 0;
+let cameraStream = null;
+let arActive = false;
+
+// ══════════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['list','map','ar'][i] === tab);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(tab + '-panel').classList.add('active');
+
+  if (tab === 'ar') startAR();
+}
+
+// ══════════════════════════════════════════
+// BUILD LIST
+// ══════════════════════════════════════════
+function buildList(filter = '') {
+  const list = document.getElementById('building-list');
+  const lower = filter.toLowerCase();
+  const filtered = BUILDINGS.filter(b =>
+    b.name.toLowerCase().includes(lower) ||
+    b.desc.toLowerCase().includes(lower)
+  );
+
+  list.innerHTML = filtered.map(b => {
+    const dist = userLat ? formatDist(getDistance(userLat, userLon, b.lat, b.lon)) : '--';
+    const sel = selectedBuilding?.id === b.id ? 'selected' : '';
+    return `
+      <div class="building-card ${sel}" onclick="selectBuilding('${b.id}')">
+        <div class="building-icon" style="background:linear-gradient(135deg,${b.color}88,${b.color}44)">${b.icon}</div>
+        <div class="building-info">
+          <div class="building-name">${b.name}</div>
+          <div class="building-desc">${b.desc}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div class="building-dist">${dist}</div>
+          <button class="nav-btn" onclick="event.stopPropagation();navigateTo('${b.id}')">NAV →</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function filterBuildings() {
+  buildList(document.getElementById('search-input').value);
+}
+
+// ══════════════════════════════════════════
+// SELECT BUILDING
+// ══════════════════════════════════════════
+function selectBuilding(id) {
+  selectedBuilding = BUILDINGS.find(b => b.id === id);
+  buildList(document.getElementById('search-input').value);
+}
+
+function selectBuildingOnMap(id) {
+  selectedBuilding = BUILDINGS.find(b => b.id === id);
+  // Highlight on map
+  document.querySelectorAll('.building-shape').forEach(s => s.classList.remove('highlighted'));
+  const el = document.getElementById('bld-' + id);
+  if (el) el.classList.add('highlighted');
+  // Show info card
+  const card = document.getElementById('map-info-card');
+  document.getElementById('mic-name').textContent = selectedBuilding.icon + ' ' + selectedBuilding.name;
+  document.getElementById('mic-desc').textContent = selectedBuilding.desc;
+  card.classList.add('visible');
+}
+
+function navigateTo(id) {
+  selectedBuilding = BUILDINGS.find(b => b.id === id);
+  switchTab('ar');
+}
+
+function navigateToSelected() {
+  if (selectedBuilding) switchTab('ar');
+}
+
+// ══════════════════════════════════════════
+// GPS
+// ══════════════════════════════════════════
+function initGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('gps-status').textContent = 'No GPS';
+    return;
+  }
+  navigator.geolocation.watchPosition(pos => {
+    userLat = pos.coords.latitude;
+    userLon = pos.coords.longitude;
+    document.getElementById('gps-status').textContent = 'GPS ✓';
+    buildList(document.getElementById('search-input').value);
+    updateARDestination();
+  }, () => {
+    document.getElementById('gps-status').textContent = 'No GPS';
+  }, { enableHighAccuracy: true });
+}
+
+// ══════════════════════════════════════════
+// COMPASS
+// ══════════════════════════════════════════
+function initCompass() {
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', e => {
+      if (e.alpha !== null) {
+        heading = e.alpha;
+        document.getElementById('ar-compass').style.transform = `rotate(${-heading}deg)`;
+        renderARMarkers();
+      }
+    }, true);
+  }
+}
+
+// ══════════════════════════════════════════
+// AR CAMERA
+// ══════════════════════════════════════════
+async function startAR() {
+  if (arActive) return;
+  const video = document.getElementById('ar-video');
+  const noCam = document.getElementById('no-camera');
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    video.srcObject = cameraStream;
+    video.style.display = 'block';
+    noCam.style.display = 'none';
+    arActive = true;
+    document.getElementById('ar-status').textContent = '📍 AR Active — Point at campus';
+    renderARMarkers();
+  } catch (err) {
+    video.style.display = 'none';
+    noCam.style.display = 'flex';
+    document.getElementById('ar-status').textContent = '❌ Camera blocked';
+  }
+}
+
+// ══════════════════════════════════════════
+// AR MARKERS
+// ══════════════════════════════════════════
+function renderARMarkers() {
+  if (!arActive || !userLat) return;
+  const container = document.getElementById('ar-markers');
+  container.innerHTML = '';
+
+  const panelEl = document.getElementById('ar-panel');
+  const W = panelEl.offsetWidth;
+  const H = panelEl.offsetHeight;
+
+  BUILDINGS.forEach(b => {
+    const bearing = getBearing(userLat, userLon, b.lat, b.lon);
+    const dist = getDistance(userLat, userLon, b.lat, b.lon);
+
+    // Only show buildings within 500m
+    if (dist > 500) return;
+
+    // Angular difference from current heading
+    let diff = bearing - heading;
+    while (diff > 180) diff -= 360;
+    while (diff < -180) diff += 360;
+
+    // Only show if within ±60 degrees of view
+    if (Math.abs(diff) > 60) return;
+
+    const x = W / 2 + (diff / 60) * (W / 2);
+    const y = H * 0.35;
+
+    const marker = document.createElement('div');
+    marker.className = 'ar-marker';
+    marker.style.left = x + 'px';
+    marker.style.top = y + 'px';
+    marker.style.borderColor = b.color;
+    marker.innerHTML = `
+      <div class="ar-marker-label" style="border-color:${b.color};color:${b.color}">
+        ${b.icon} ${b.name} — ${formatDist(dist)}
+      </div>
+      <div class="ar-marker-arrow" style="color:${b.color}">▼</div>`;
+    container.appendChild(marker);
+  });
+}
+
+function updateARDestination() {
+  const destEl = document.getElementById('ar-dest');
+  const noDest = document.getElementById('ar-no-dest');
+  if (selectedBuilding && userLat) {
+    const dist = getDistance(userLat, userLon, selectedBuilding.lat, selectedBuilding.lon);
+    document.getElementById('ar-dest-name').textContent = selectedBuilding.icon + ' ' + selectedBuilding.name;
+    document.getElementById('ar-dest-dist').textContent = formatDist(dist) + ' away';
+    destEl.style.display = 'block';
+    noDest.style.display = 'none';
+    document.getElementById('ar-status').textContent = '🧭 Navigating to ' + selectedBuilding.name;
+  } else if (selectedBuilding) {
+    destEl.style.display = 'block';
+    noDest.style.display = 'none';
+    document.getElementById('ar-dest-name').textContent = selectedBuilding.icon + ' ' + selectedBuilding.name;
+    document.getElementById('ar-dest-dist').textContent = 'Enable GPS for distance';
+  } else {
+    destEl.style.display = 'none';
+    noDest.style.display = 'block';
+  }
+}
+
+// ══════════════════════════════════════════
+// MATH HELPERS
+// ══════════════════════════════════════════
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function getBearing(lat1, lon1, lat2, lon2) {
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+    Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function formatDist(m) {
+  return m > 1000 ? (m/1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildList();
+initGPS();
+initCompass();
+
+// Refresh AR markers periodically
+setInterval(() => {
+  if (arActive) renderARMarkers();
+  if (arActive && selectedBuilding) updateARDestination();
+}, 1000);
+</script>
+</body>
+</html>
