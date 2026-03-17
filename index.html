@@ -2,1601 +2,1045 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>IFET Campus Navigator</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --p1: #6d28d9;
-  --p2: #7c3aed;
-  --p3: #8b5cf6;
-  --p4: #a78bfa;
-  --p5: #c4b5fd;
-  --bg: #09060f;
-  --bg2: #100c1c;
-  --bg3: #160f28;
-  --surface: rgba(109,40,217,0.08);
-  --surface2: rgba(109,40,217,0.14);
-  --border: rgba(139,92,246,0.2);
-  --border2: rgba(139,92,246,0.4);
-  --text: #f0ebff;
-  --text2: #b8a9d9;
-  --text3: #7a6b99;
-  --white: #ffffff;
-  --green: #34d399;
-  --red: #f87171;
-  --yellow: #fbbf24;
-}
+  :root {
+    --primary: #00f5d4;
+    --secondary: #f72585;
+    --accent: #7209b7;
+    --bg: #0a0a1a;
+    --bg2: #0f0f2d;
+    --card: rgba(255,255,255,0.05);
+    --text: #e0e0ff;
+    --glow: 0 0 20px rgba(0,245,212,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
 
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--bg2), var(--accent));
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0,245,212,0.3);
+    box-shadow: 0 2px 20px rgba(114,9,183,0.5);
+    z-index: 100;
+  }
+  .header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--primary);
+    text-shadow: var(--glow);
+    letter-spacing: 2px;
+  }
+  .header p { font-size: 10px; color: rgba(224,224,255,0.6); letter-spacing: 1px; }
+  .gps-badge {
+    background: rgba(0,245,212,0.1);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 10px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .gps-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.4)} }
 
-html { scroll-behavior: smooth; }
+  /* ── TAB BAR ── */
+  .tabs {
+    display: flex;
+    background: var(--bg2);
+    border-bottom: 1px solid rgba(0,245,212,0.15);
+  }
+  .tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    color: rgba(224,224,255,0.4);
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+  }
+  .tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    text-shadow: var(--glow);
+  }
+  .tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  overflow-x: hidden;
-  cursor: default;
-}
+  /* ── CONTENT PANELS ── */
+  .panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .panel.active { display: flex; }
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--p2); border-radius: 4px; }
+  /* ── SEARCH BAR ── */
+  .search-wrap {
+    padding: 12px 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid rgba(0,245,212,0.1);
+  }
+  .search-box {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(0,245,212,0.3);
+    border-radius: 25px;
+    padding: 10px 18px;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.3s, box-shadow 0.3s;
+  }
+  .search-box:focus {
+    border-color: var(--primary);
+    box-shadow: var(--glow);
+  }
+  .search-box::placeholder { color: rgba(224,224,255,0.3); }
 
-/* ── NOISE TEXTURE OVERLAY ── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 1000;
-  opacity: 0.4;
-}
+  /* ── BUILDING LIST ── */
+  .building-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .building-list::-webkit-scrollbar { width: 4px; }
+  .building-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
 
-/* ── NAV ── */
-nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 900;
-  padding: 0 40px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(9,6,15,0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-}
-.nav-logo {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 16px;
-  color: var(--p4);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
-.nav-logo span { color: var(--white); }
-.nav-links {
-  display: flex;
-  gap: 32px;
-  list-style: none;
-}
-.nav-links a {
-  color: var(--text2);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  transition: color 0.2s;
-}
-.nav-links a:hover { color: var(--p4); }
-.nav-cta {
-  background: var(--p1);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-family: 'Syne', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: background 0.2s, transform 0.2s;
-  text-decoration: none;
-}
-.nav-cta:hover { background: var(--p2); transform: translateY(-1px); }
+  .building-card {
+    background: var(--card);
+    border: 1px solid rgba(0,245,212,0.15);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .building-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--primary);
+    border-radius: 3px 0 0 3px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .building-card:hover, .building-card.selected {
+    background: rgba(0,245,212,0.08);
+    border-color: var(--primary);
+    transform: translateX(4px);
+    box-shadow: var(--glow);
+  }
+  .building-card:hover::before, .building-card.selected::before { opacity: 1; }
 
-/* ── HERO ── */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  padding: 80px 40px 60px;
-}
+  .building-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .building-info { flex: 1; }
+  .building-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 3px;
+  }
+  .building-desc { font-size: 11px; color: rgba(224,224,255,0.5); }
+  .building-dist {
+    font-size: 11px;
+    color: var(--secondary);
+    font-weight: 600;
+    text-align: right;
+  }
+  .nav-btn {
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: opacity 0.2s;
+  }
+  .nav-btn:hover { opacity: 0.8; }
 
-/* Background orbs */
-.hero::before {
-  content: '';
-  position: absolute;
-  width: 600px; height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(109,40,217,0.25) 0%, transparent 70%);
-  top: -100px; left: -200px;
-  pointer-events: none;
-}
-.hero::after {
-  content: '';
-  position: absolute;
-  width: 500px; height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
-  bottom: -100px; right: -100px;
-  pointer-events: none;
-}
+  /* ── MAP PANEL ── */
+  #map-panel {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+  }
+  .campus-map {
+    width: 100%;
+    height: 100%;
+    background: #0d1117;
+    position: relative;
+    overflow: hidden;
+  }
 
-.hero-content {
-  max-width: 900px;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-}
+  /* SVG map styles */
+  .map-svg { width: 100%; height: 100%; }
+  .road { fill: #1a1a3e; stroke: rgba(0,245,212,0.2); stroke-width: 1; }
+  .road-path { fill: #1e2040; }
+  .building-shape {
+    fill: rgba(114,9,183,0.4);
+    stroke: rgba(0,245,212,0.5);
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: fill 0.3s;
+  }
+  .building-shape:hover { fill: rgba(0,245,212,0.3); }
+  .building-shape.highlighted { fill: rgba(247,37,133,0.5); stroke: var(--secondary); stroke-width: 2.5; }
+  .map-label {
+    fill: var(--primary);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 8px;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .gate-label { fill: #ffd60a; font-size: 7px; }
+  .road-label { fill: rgba(0,245,212,0.4); font-size: 7px; text-anchor: middle; }
 
-.hero-badge {
-  display: inline-block;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 100px;
-  padding: 6px 18px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--p4);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 28px;
-  animation: fadeUp 0.6s ease forwards;
-}
+  /* User dot on map */
+  .user-dot {
+    fill: var(--primary);
+    filter: drop-shadow(0 0 6px var(--primary));
+    animation: pulse 1.5s infinite;
+  }
 
-.hero h1 {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(42px, 8vw, 80px);
-  font-weight: 800;
-  line-height: 1.05;
-  margin-bottom: 24px;
-  animation: fadeUp 0.7s ease 0.1s both;
-}
-.hero h1 .line1 { display: block; color: var(--white); }
-.hero h1 .line2 {
-  display: block;
-  background: linear-gradient(135deg, var(--p3), var(--p5));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+  /* Map controls */
+  .map-controls {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .map-btn {
+    width: 36px; height: 36px;
+    background: rgba(15,15,45,0.9);
+    border: 1px solid rgba(0,245,212,0.3);
+    border-radius: 8px;
+    color: var(--primary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .map-btn:hover { background: rgba(0,245,212,0.15); }
 
-.hero-sub {
-  font-size: 16px;
-  color: var(--text2);
-  line-height: 1.7;
-  max-width: 520px;
-  margin: 0 auto 40px;
-  font-weight: 300;
-  animation: fadeUp 0.7s ease 0.2s both;
-}
+  /* Selected building info card on map */
+  .map-info-card {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 64px;
+    background: rgba(10,10,26,0.95);
+    border: 1px solid var(--primary);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: none;
+    box-shadow: var(--glow);
+  }
+  .map-info-card.visible { display: block; }
+  .mic-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .mic-desc { font-size: 11px; color: rgba(224,224,255,0.6); margin-bottom: 8px; }
+  .mic-nav {
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    width: 100%;
+  }
 
-.hero-actions {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  flex-wrap: wrap;
-  animation: fadeUp 0.7s ease 0.3s both;
-}
+  /* ── AR PANEL ── */
+  #ar-panel {
+    flex: 1;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+  }
+  #ar-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  #ar-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .ar-status {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 11px;
+    color: var(--primary);
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .ar-compass {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 50px; height: 50px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: 10;
+  }
+  .ar-destination {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    border: 1px solid var(--secondary);
+    border-radius: 14px;
+    padding: 10px 20px;
+    text-align: center;
+    z-index: 10;
+    min-width: 200px;
+  }
+  .ar-dest-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--secondary);
+    margin-bottom: 3px;
+  }
+  .ar-dest-dist { font-size: 11px; color: rgba(255,255,255,0.7); }
+  .ar-no-dest {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    z-index: 10;
+    white-space: nowrap;
+  }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--p1), var(--p2));
-  color: var(--white);
-  border: none;
-  border-radius: 10px;
-  padding: 14px 32px;
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 8px 32px rgba(109,40,217,0.4);
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(109,40,217,0.6); }
+  /* AR markers overlay */
+  .ar-marker {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .ar-marker-label {
+    background: rgba(0,0,0,0.85);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    color: var(--primary);
+    white-space: nowrap;
+    margin-bottom: 4px;
+  }
+  .ar-marker-arrow {
+    font-size: 22px;
+    filter: drop-shadow(0 0 6px var(--primary));
+    animation: bounce 1s infinite;
+  }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
 
-.btn-secondary {
-  background: transparent;
-  color: var(--p4);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  padding: 14px 32px;
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  transition: background 0.2s, transform 0.2s;
-}
-.btn-secondary:hover { background: var(--surface); transform: translateY(-2px); }
+  /* ── NO CAMERA FALLBACK ── */
+  .no-camera {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+  }
+  .no-camera-icon { font-size: 48px; }
+  .no-camera h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--primary);
+    font-size: 14px;
+  }
+  .no-camera p { font-size: 12px; color: rgba(224,224,255,0.5); line-height: 1.6; }
+  .allow-btn {
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    border: none;
+    border-radius: 25px;
+    padding: 12px 28px;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
 
-/* Stats bar */
-.hero-stats {
-  display: flex;
-  gap: 48px;
-  justify-content: center;
-  margin-top: 60px;
-  padding-top: 40px;
-  border-top: 1px solid var(--border);
-  animation: fadeUp 0.7s ease 0.4s both;
-  flex-wrap: wrap;
-}
-.stat { text-align: center; }
-.stat-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--p4);
-  display: block;
-}
-.stat-label {
-  font-size: 11px;
-  color: var(--text3);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-top: 4px;
-  display: block;
-}
+  /* Grid overlay effect */
+  .grid-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
 
-/* ── SECTION BASE ── */
-section {
-  padding: 80px 40px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.section-tag {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--p3);
-  margin-bottom: 12px;
-  display: block;
-}
-.section-title {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 800;
-  color: var(--white);
-  margin-bottom: 14px;
-  line-height: 1.15;
-}
-.section-sub {
-  font-size: 15px;
-  color: var(--text2);
-  line-height: 1.7;
-  max-width: 500px;
-  font-weight: 300;
-  margin-bottom: 48px;
-}
-
-/* ── FEATURES GRID ── */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-.feature-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  transition: border-color 0.3s, transform 0.3s, background 0.3s;
-  position: relative;
-  overflow: hidden;
-}
-.feature-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--p1), var(--p3));
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.feature-card:hover {
-  border-color: var(--border2);
-  transform: translateY(-4px);
-  background: var(--surface2);
-}
-.feature-card:hover::before { opacity: 1; }
-.feature-icon {
-  width: 44px; height: 44px;
-  background: linear-gradient(135deg, var(--p1), var(--p3));
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 18px;
-}
-.feature-icon svg { width: 22px; height: 22px; fill: white; }
-.feature-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 8px;
-}
-.feature-desc {
-  font-size: 13px;
-  color: var(--text2);
-  line-height: 1.65;
-  font-weight: 300;
-}
-
-/* ── BUS TRACKING ── */
-#bus { background: var(--bg2); padding: 80px 0; }
-#bus > .inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
-
-.bus-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-@media(max-width:700px){ .bus-grid { grid-template-columns: 1fr; } }
-
-.bus-card {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  transition: border-color 0.3s;
-}
-.bus-card:hover { border-color: var(--border2); }
-
-.bus-header {
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.bus-route {
-  font-family: 'Syne', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--white);
-}
-.bus-num {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 2px;
-}
-.status-badge {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding: 4px 10px;
-  border-radius: 100px;
-  text-transform: uppercase;
-}
-.status-live { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
-.status-soon { background: rgba(251,191,36,0.15); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
-.status-away { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
-
-.bus-body { padding: 18px 22px; }
-.bus-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(139,92,246,0.06);
-  font-size: 13px;
-}
-.bus-row:last-child { border-bottom: none; }
-.bus-row-label { color: var(--text3); }
-.bus-row-val { color: var(--text); font-weight: 500; }
-
-/* Live dot */
-.live-dot {
-  display: inline-block;
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--green);
-  margin-right: 6px;
-  animation: livepulse 1.5s infinite;
-}
-@keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-/* Bus progress bar */
-.bus-progress-wrap {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-.bus-progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--text3);
-  margin-bottom: 8px;
-}
-.bus-progress-bar {
-  height: 4px;
-  background: var(--surface2);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.bus-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--p1), var(--p3));
-  border-radius: 4px;
-  transition: width 1s ease;
-}
-
-/* Last updated */
-.last-updated {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 20px;
-  text-align: right;
-  letter-spacing: 0.5px;
-}
-
-/* ── ELEVATOR ── */
-#elevator { padding: 80px 40px; max-width: 1100px; margin: 0 auto; }
-
-.elevator-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-.elevator-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  transition: border-color 0.3s, transform 0.3s;
-}
-.elevator-card:hover { border-color: var(--border2); transform: translateY(-3px); }
-
-.elev-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.elev-name {
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--white);
-}
-.elev-id { font-size: 11px; color: var(--text3); }
-
-.elev-body { padding: 16px 20px; }
-
-.floor-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(139,92,246,0.06);
-  font-size: 13px;
-}
-.floor-row:last-child { border-bottom: none; }
-.floor-num {
-  width: 36px; height: 36px;
-  border-radius: 8px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--p4);
-  flex-shrink: 0;
-}
-.floor-name { color: var(--text2); flex: 1; font-size: 12px; }
-.floor-status {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 100px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.floor-available { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
-.floor-busy { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.25); }
-.floor-closed { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
-
-.elev-footer {
-  padding: 12px 20px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  font-size: 11px;
-  color: var(--text3);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.elev-overall {
-  font-weight: 600;
-  font-size: 11px;
-}
-.elev-overall.ok { color: var(--green); }
-.elev-overall.warn { color: var(--yellow); }
-.elev-overall.down { color: var(--red); }
-
-/* ── MAP SECTION ── */
-#navigate { background: var(--bg2); padding: 80px 0; }
-#navigate .inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
-
-.map-wrapper {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  overflow: hidden;
-}
-.map-topbar {
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.map-topbar-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--white);
-}
-.map-topbar-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-
-.campus-svg-wrap {
-  padding: 24px;
-  background: #0a0716;
-}
-.campus-svg-wrap svg { width: 100%; max-height: 420px; }
-
-/* SVG map */
-.svg-road { fill: #150e2a; }
-.svg-bld {
-  fill: rgba(109,40,217,0.35);
-  stroke: rgba(139,92,246,0.5);
-  stroke-width: 1.5;
-  cursor: pointer;
-  transition: fill 0.2s;
-}
-.svg-bld:hover { fill: rgba(139,92,246,0.55); }
-.svg-label { fill: #c4b5fd; font-family: 'DM Sans', sans-serif; font-size: 9px; text-anchor: middle; pointer-events: none; font-weight: 600; }
-.svg-gate { fill: rgba(251,191,36,0.2); stroke: #fbbf24; stroke-width: 1.5; }
-.svg-gate-label { fill: #fbbf24; font-size: 8px; text-anchor: middle; font-weight: 700; }
-.svg-road-line { stroke: rgba(139,92,246,0.12); stroke-width: 1; stroke-dasharray: 10,7; fill: none; }
-.svg-you { fill: #a78bfa; filter: drop-shadow(0 0 8px #7c3aed); }
-
-/* ── FEEDBACK ── */
-#feedback { padding: 80px 40px; max-width: 700px; margin: 0 auto; }
-
-.feedback-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 40px;
-}
-
-.form-group { margin-bottom: 22px; }
-.form-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--p4);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.form-input, .form-textarea, .form-select {
-  width: 100%;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  appearance: none;
-}
-.form-input:focus, .form-textarea:focus, .form-select:focus {
-  border-color: var(--p2);
-  box-shadow: 0 0 0 3px rgba(109,40,217,0.15);
-}
-.form-input::placeholder, .form-textarea::placeholder { color: var(--text3); }
-.form-textarea { resize: vertical; min-height: 120px; }
-.form-select option { background: var(--bg3); }
-
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media(max-width:500px){ .form-row { grid-template-columns: 1fr; } }
-
-/* Rating stars */
-.rating-wrap { display: flex; gap: 8px; }
-.star {
-  width: 36px; height: 36px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  color: var(--text3);
-  font-size: 18px;
-  transition: all 0.15s;
-  user-select: none;
-}
-.star:hover, .star.active { background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.4); color: #fbbf24; }
-
-.submit-btn {
-  width: 100%;
-  background: linear-gradient(135deg, var(--p1), var(--p2));
-  color: var(--white);
-  border: none;
-  border-radius: 10px;
-  padding: 14px;
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: opacity 0.2s, transform 0.2s;
-  box-shadow: 0 8px 24px rgba(109,40,217,0.3);
-}
-.submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-
-.form-success {
-  display: none;
-  text-align: center;
-  padding: 24px;
-}
-.form-success-icon {
-  width: 56px; height: 56px;
-  border-radius: 50%;
-  background: rgba(52,211,153,0.15);
-  border: 1px solid rgba(52,211,153,0.3);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px;
-  font-size: 24px;
-}
-.form-success h3 {
-  font-family: 'Syne', sans-serif;
-  color: var(--white);
-  font-size: 18px;
-  margin-bottom: 8px;
-}
-.form-success p { color: var(--text2); font-size: 14px; }
-
-/* ── DIVIDER ── */
-.section-divider {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 40px;
-  border: none;
-  border-top: 1px solid var(--border);
-}
-
-/* ── FOOTER ── */
-footer {
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  padding: 60px 40px 32px;
-}
-.footer-inner { max-width: 1100px; margin: 0 auto; }
-
-.footer-top {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 48px;
-  margin-bottom: 48px;
-}
-@media(max-width:700px){ .footer-top { grid-template-columns: 1fr; gap: 32px; } }
-
-.footer-brand-name {
-  font-family: 'Syne', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--p4);
-  letter-spacing: 2px;
-  margin-bottom: 6px;
-}
-.footer-college-full {
-  font-size: 12px;
-  color: var(--text2);
-  font-weight: 500;
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-.footer-address {
-  font-size: 12px;
-  color: var(--text3);
-  line-height: 1.9;
-}
-.footer-address strong {
-  color: var(--text2);
-  font-weight: 500;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.footer-col-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--p3);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 18px;
-}
-.footer-links { list-style: none; }
-.footer-links li { margin-bottom: 10px; }
-.footer-links a {
-  color: var(--text3);
-  text-decoration: none;
-  font-size: 13px;
-  transition: color 0.2s;
-}
-.footer-links a:hover { color: var(--p4); }
-
-.footer-contact-item {
-  font-size: 12px;
-  color: var(--text3);
-  margin-bottom: 10px;
-  line-height: 1.5;
-}
-.footer-contact-item strong { color: var(--text2); display: block; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 2px; }
-
-.footer-bottom {
-  border-top: 1px solid var(--border);
-  padding-top: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.footer-copy { font-size: 12px; color: var(--text3); }
-.footer-copy a { color: var(--p4); text-decoration: none; }
-.footer-accred {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.accred-badge {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  text-transform: uppercase;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--p4);
-}
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.reveal {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.reveal.visible { opacity: 1; transform: translateY(0); }
-
-/* ── RESPONSIVE ── */
-@media(max-width: 768px) {
-  nav { padding: 0 20px; }
-  .nav-links { display: none; }
-  .hero { padding: 100px 24px 60px; }
-  section { padding: 60px 24px; }
-  #bus > .inner, #navigate .inner { padding: 0 24px; }
-  #bus, #navigate { padding: 60px 0; }
-  footer { padding: 48px 24px 24px; }
-  .feedback-wrap { padding: 28px 20px; }
-  #feedback { padding: 60px 24px; }
-  #elevator { padding: 60px 24px; }
-}
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(0,245,212,0.4);
+    padding: 8px 16px 4px;
+    text-transform: uppercase;
+  }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <div class="nav-logo">IFET <span>Navigator</span></div>
-  <ul class="nav-links">
-    <li><a href="#features">Features</a></li>
-    <li><a href="#bus">Bus Tracking</a></li>
-    <li><a href="#elevator">Elevator</a></li>
-    <li><a href="#navigate">Campus Map</a></li>
-    <li><a href="#feedback">Feedback</a></li>
-  </ul>
-  <a href="index.html" class="nav-cta">Open AR App</a>
-</nav>
+<div class="grid-overlay"></div>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-content">
-    <div class="hero-badge">IFET College of Engineering</div>
-    <h1>
-      <span class="line1">Navigate Your</span>
-      <span class="line2">Campus Smarter</span>
-    </h1>
-    <p class="hero-sub">
-      Real-time AR navigation, live bus tracking, and elevator availability — all in one place for IFET students.
-    </p>
-    <div class="hero-actions">
-      <a href="index.html" class="btn-primary">Launch AR Navigator</a>
-      <a href="#features" class="btn-secondary">Explore Features</a>
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>IFET NAVIGATOR</h1>
+    <p>CAMPUS AR GUIDE</p>
+  </div>
+  <div class="gps-badge">
+    <div class="gps-dot"></div>
+    <span id="gps-status">Locating...</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('list')">
+    <span class="tab-icon">🏛️</span>BUILDINGS
+  </div>
+  <div class="tab" onclick="switchTab('map')">
+    <span class="tab-icon">🗺️</span>MAP
+  </div>
+  <div class="tab" onclick="switchTab('ar')">
+    <span class="tab-icon">📱</span>AR VIEW
+  </div>
+</div>
+
+<!-- ══ PANEL 1: BUILDING LIST ══ -->
+<div class="panel active" id="list-panel">
+  <div class="search-wrap">
+    <input class="search-box" type="text" id="search-input" placeholder="🔍  Search buildings, labs, rooms..." oninput="filterBuildings()"/>
+  </div>
+  <div class="section-title">ALL LOCATIONS</div>
+  <div class="building-list" id="building-list"></div>
+</div>
+
+<!-- ══ PANEL 2: MAP ══ -->
+<div class="panel" id="map-panel">
+  <div class="campus-map">
+    <svg class="map-svg" viewBox="0 0 320 580" xmlns="http://www.w3.org/2000/svg" id="campus-svg">
+      <!-- Background -->
+      <rect width="320" height="580" fill="#0a0a1a"/>
+
+      <!-- Grid -->
+      <defs>
+        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,245,212,0.04)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="320" height="580" fill="url(#grid)"/>
+
+      <!-- MAIN VERTICAL ROAD (shaded, center) -->
+      <rect x="130" y="20" width="60" height="540" fill="#1a1a3e" rx="4"/>
+      <!-- Road lane markings -->
+      <line x1="160" y1="30" x2="160" y2="550" stroke="rgba(0,245,212,0.15)" stroke-width="1" stroke-dasharray="12,8"/>
+      <text x="160" y="15" class="road-label">MAIN ROAD</text>
+
+      <!-- HORIZONTAL ROAD (side branch to right) -->
+      <rect x="190" y="240" width="110" height="50" fill="#1a1a3e" rx="4"/>
+      <line x1="200" y1="265" x2="295" y2="265" stroke="rgba(0,245,212,0.15)" stroke-width="1" stroke-dasharray="8,6"/>
+
+      <!-- MAIN GATE (left side) -->
+      <rect x="20" y="248" width="110" height="34" fill="#1a1a3e" rx="4"/>
+      <line x1="30" y1="265" x2="130" y2="265" stroke="rgba(255,214,10,0.3)" stroke-width="1" stroke-dasharray="6,4"/>
+
+      <!-- Gate marker -->
+      <rect x="20" y="252" width="30" height="26" fill="rgba(255,214,10,0.15)" stroke="#ffd60a" stroke-width="1.5" rx="4"/>
+      <text x="35" y="268" class="map-label gate-label" style="fill:#ffd60a">GATE</text>
+
+      <!-- BUILDINGS on main road -->
+      <!-- Class C (top) -->
+      <rect id="bld-classC" x="76" y="40" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('classC')"/>
+      <text x="103" y="65" class="map-label">CLASS</text>
+      <text x="103" y="78" class="map-label">C</text>
+
+      <!-- Class B -->
+      <rect id="bld-classB" x="76" y="105" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('classB')"/>
+      <text x="103" y="130" class="map-label">CLASS</text>
+      <text x="103" y="143" class="map-label">B</text>
+
+      <!-- Class A -->
+      <rect id="bld-classA" x="76" y="170" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('classA')"/>
+      <text x="103" y="195" class="map-label">CLASS</text>
+      <text x="103" y="208" class="map-label">A</text>
+
+      <!-- SD Lab -->
+      <rect id="bld-sdLab" x="190" y="180" width="54" height="50" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('sdLab')"/>
+      <text x="217" y="203" class="map-label">SD LAB</text>
+
+      <!-- Mech Lab (right branch) -->
+      <rect id="bld-mechLab" x="210" y="300" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('mechLab')"/>
+      <text x="237" y="325" class="map-label">MECH</text>
+      <text x="237" y="338" class="map-label">LAB</text>
+
+      <!-- Library (far right) -->
+      <rect id="bld-library" x="270" y="230" width="44" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('library')"/>
+      <text x="292" y="255" class="map-label">LIB</text>
+      <text x="292" y="268" class="map-label">RARY</text>
+
+      <!-- Project Lab -->
+      <rect id="bld-projectLab" x="76" y="305" width="54" height="55" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('projectLab')"/>
+      <text x="103" y="328" class="map-label">PROJECT</text>
+      <text x="103" y="341" class="map-label">LAB</text>
+
+      <!-- Administration (bottom) -->
+      <rect id="bld-admin" x="76" y="430" width="54" height="70" fill="rgba(114,9,183,0.4)" stroke="rgba(0,245,212,0.5)" stroke-width="1.5" rx="5" class="building-shape" onclick="selectBuildingOnMap('admin')"/>
+      <text x="103" y="460" class="map-label">ADMIN</text>
+      <text x="103" y="473" class="map-label">BLOCK</text>
+
+      <!-- You are here dot -->
+      <circle id="user-map-dot" cx="160" cy="265" r="6" class="user-dot"/>
+      <circle cx="160" cy="265" r="12" fill="none" stroke="rgba(0,245,212,0.3)" stroke-width="1">
+        <animate attributeName="r" from="8" to="20" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <text x="160" y="292" class="map-label" style="fill:#ffd60a;font-size:7px">YOU</text>
+
+      <!-- North indicator -->
+      <text x="300" y="30" class="map-label" style="fill:var(--secondary);font-size:14px">N</text>
+      <text x="300" y="44" class="map-label" style="fill:var(--secondary);font-size:10px">↑</text>
+    </svg>
+
+    <!-- Info card -->
+    <div class="map-info-card" id="map-info-card">
+      <div class="mic-name" id="mic-name">Building Name</div>
+      <div class="mic-desc" id="mic-desc">Description</div>
+      <button class="mic-nav" onclick="navigateToSelected()">🧭 NAVIGATE IN AR</button>
     </div>
-    <div class="hero-stats">
-      <div class="stat">
-        <span class="stat-num">9</span>
-        <span class="stat-label">Locations Mapped</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">4</span>
-        <span class="stat-label">Bus Routes</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">2</span>
-        <span class="stat-label">Elevator Blocks</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">AR</span>
-        <span class="stat-label">Powered</span>
-      </div>
+
+    <div class="map-controls">
+      <button class="map-btn" title="Center">⊕</button>
     </div>
   </div>
 </div>
 
-<!-- FEATURES -->
-<section id="features">
-  <span class="section-tag reveal">What We Offer</span>
-  <h2 class="section-title reveal">Everything you need<br>to move around campus</h2>
-  <p class="section-sub reveal">From finding a classroom to catching a bus — your complete campus companion.</p>
-  <div class="features-grid">
-    <div class="feature-card reveal">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-      </div>
-      <div class="feature-title">AR Navigation</div>
-      <div class="feature-desc">Point your phone and see floating labels guiding you to any building or lab on campus in real time.</div>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg>
-      </div>
-      <div class="feature-title">Live Bus Tracking</div>
-      <div class="feature-desc">Track campus buses in real time. Know exactly when your route arrives so you never miss a ride.</div>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-      </div>
-      <div class="feature-title">Elevator Status</div>
-      <div class="feature-desc">Check floor-by-floor elevator availability across all blocks before you head to a building.</div>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
-      </div>
-      <div class="feature-title">Campus Map</div>
-      <div class="feature-desc">Interactive map of the entire IFET campus with all buildings, roads, and entry points clearly marked.</div>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93C9.33 17.79 7 14.5 7 11V7.18L12 5z"/></svg>
-      </div>
-      <div class="feature-title">GPS Positioning</div>
-      <div class="feature-desc">Real-time GPS locates you on campus and calculates walking distances to every destination automatically.</div>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-      </div>
-      <div class="feature-title">Student Feedback</div>
-      <div class="feature-desc">Rate your experience and report issues directly. Your feedback helps improve the campus experience.</div>
-    </div>
+<!-- ══ PANEL 3: AR VIEW ══ -->
+<div class="panel" id="ar-panel">
+  <div class="ar-status" id="ar-status">📍 Initializing AR...</div>
+  <div class="ar-compass" id="ar-compass">🧭</div>
+
+  <video id="ar-video" autoplay playsinline muted></video>
+  <canvas id="ar-canvas"></canvas>
+
+  <!-- AR markers will be injected here -->
+  <div id="ar-markers"></div>
+
+  <div class="ar-destination" id="ar-dest" style="display:none">
+    <div class="ar-dest-name" id="ar-dest-name">Destination</div>
+    <div class="ar-dest-dist" id="ar-dest-dist">-- m away</div>
   </div>
-</section>
+  <div class="ar-no-dest" id="ar-no-dest">← Select a building to navigate</div>
 
-<hr class="section-divider"/>
-
-<!-- BUS TRACKING -->
-<div id="bus">
-  <div class="inner">
-    <span class="section-tag reveal">Real-Time</span>
-    <h2 class="section-title reveal">Live Bus Tracking</h2>
-    <p class="section-sub reveal">Check the current location and arrival time for all campus bus routes.</p>
-
-    <div class="bus-grid">
-
-      <!-- Bus 1 -->
-      <div class="bus-card reveal">
-        <div class="bus-header">
-          <div>
-            <div class="bus-route">Villupuram - IFET</div>
-            <div class="bus-num">Route VLR-01</div>
-          </div>
-          <div class="status-badge status-live"><span class="live-dot"></span>Live</div>
-        </div>
-        <div class="bus-body">
-          <div class="bus-row">
-            <span class="bus-row-label">Current Location</span>
-            <span class="bus-row-val" id="b1-loc">Near Tindivanam Toll</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">ETA to Campus</span>
-            <span class="bus-row-val" id="b1-eta">12 mins</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">Capacity</span>
-            <span class="bus-row-val">34 / 50 seats</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">Driver</span>
-            <span class="bus-row-val">Mr. Rajan</span>
-          </div>
-          <div class="bus-progress-wrap">
-            <div class="bus-progress-label">
-              <span>Villupuram</span>
-              <span>IFET Campus</span>
-            </div>
-            <div class="bus-progress-bar">
-              <div class="bus-progress-fill" id="b1-prog" style="width:72%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bus 2 -->
-      <div class="bus-card reveal">
-        <div class="bus-header">
-          <div>
-            <div class="bus-route">Cuddalore - IFET</div>
-            <div class="bus-num">Route CDL-02</div>
-          </div>
-          <div class="status-badge status-soon">Arriving Soon</div>
-        </div>
-        <div class="bus-body">
-          <div class="bus-row">
-            <span class="bus-row-label">Current Location</span>
-            <span class="bus-row-val" id="b2-loc">Panruti Bypass</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">ETA to Campus</span>
-            <span class="bus-row-val" id="b2-eta">5 mins</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">Capacity</span>
-            <span class="bus-row-val">41 / 50 seats</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">Driver</span>
-            <span class="bus-row-val">Mr. Selvam</span>
-          </div>
-          <div class="bus-progress-wrap">
-            <div class="bus-progress-label">
-              <span>Cuddalore</span>
-              <span>IFET Campus</span>
-            </div>
-            <div class="bus-progress-bar">
-              <div class="bus-progress-fill" id="b2-prog" style="width:88%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bus 3 -->
-      <div class="bus-card reveal">
-        <div class="bus-header">
-          <div>
-            <div class="bus-route">Pondicherry - IFET</div>
-            <div class="bus-num">Route PDY-03</div>
-          </div>
-          <div class="status-badge status-away">En Route</div>
-        </div>
-        <div class="bus-body">
-          <div class="bus-row">
-            <span class="bus-row-label">Current Location</span>
-            <span class="bus-row-val" id="b3-loc">Marakkanam Junction</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">ETA to Campus</span>
-            <span class="bus-row-val" id="b3-eta">28 mins</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">Capacity</span>
-            <span class="bus-row-val">22 / 50 seats</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">Driver</span>
-            <span class="bus-row-val">Mr. Kumar</span>
-          </div>
-          <div class="bus-progress-wrap">
-            <div class="bus-progress-label">
-              <span>Pondicherry</span>
-              <span>IFET Campus</span>
-            </div>
-            <div class="bus-progress-bar">
-              <div class="bus-progress-fill" id="b3-prog" style="width:45%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bus 4 -->
-      <div class="bus-card reveal">
-        <div class="bus-header">
-          <div>
-            <div class="bus-route">Chennai - IFET</div>
-            <div class="bus-num">Route CHN-04</div>
-          </div>
-          <div class="status-badge status-away">En Route</div>
-        </div>
-        <div class="bus-body">
-          <div class="bus-row">
-            <span class="bus-row-label">Current Location</span>
-            <span class="bus-row-val" id="b4-loc">Melmaruvathur</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">ETA to Campus</span>
-            <span class="bus-row-val" id="b4-eta">52 mins</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">Capacity</span>
-            <span class="bus-row-val">38 / 50 seats</span>
-          </div>
-          <div class="bus-row">
-            <span class="bus-row-label">Driver</span>
-            <span class="bus-row-val">Mr. Anand</span>
-          </div>
-          <div class="bus-progress-wrap">
-            <div class="bus-progress-label">
-              <span>Chennai</span>
-              <span>IFET Campus</span>
-            </div>
-            <div class="bus-progress-bar">
-              <div class="bus-progress-fill" id="b4-prog" style="width:28%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <div class="last-updated reveal">Last updated: <span id="update-time">Just now</span></div>
+  <div class="no-camera" id="no-camera" style="display:none">
+    <div class="no-camera-icon">📷</div>
+    <h3>CAMERA NEEDED</h3>
+    <p>AR navigation requires camera access.<br/>Please allow camera permission and use HTTPS.</p>
+    <button class="allow-btn" onclick="startAR()">ENABLE CAMERA</button>
   </div>
 </div>
-
-<hr class="section-divider"/>
-
-<!-- ELEVATOR -->
-<section id="elevator">
-  <span class="section-tag reveal">Floor by Floor</span>
-  <h2 class="section-title reveal">Elevator Availability</h2>
-  <p class="section-sub reveal">Check which floors have working elevators before heading to your class or lab.</p>
-
-  <div class="elevator-grid">
-
-    <!-- Elevator A - Main Block -->
-    <div class="elevator-card reveal">
-      <div class="elev-header">
-        <div>
-          <div class="elev-name">Main Block Elevator</div>
-          <div class="elev-id">Unit A — Class Blocks</div>
-        </div>
-        <div class="status-badge status-live">Operational</div>
-      </div>
-      <div class="elev-body">
-        <div class="floor-row">
-          <div class="floor-num">G</div>
-          <div class="floor-name">Ground Floor — Main Gate Lobby</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">1</div>
-          <div class="floor-name">First Floor — Class A</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">2</div>
-          <div class="floor-name">Second Floor — Class B</div>
-          <div class="floor-status floor-busy">In Use</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">3</div>
-          <div class="floor-name">Third Floor — Class C</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">4</div>
-          <div class="floor-name">Fourth Floor — HOD Offices</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-      </div>
-      <div class="elev-footer">
-        <span>Last checked 2 mins ago</span>
-        <span class="elev-overall ok">All Systems Normal</span>
-      </div>
-    </div>
-
-    <!-- Elevator B - Lab Block -->
-    <div class="elevator-card reveal">
-      <div class="elev-header">
-        <div>
-          <div class="elev-name">Lab Block Elevator</div>
-          <div class="elev-id">Unit B — Labs Wing</div>
-        </div>
-        <div class="status-badge status-soon">Partial</div>
-      </div>
-      <div class="elev-body">
-        <div class="floor-row">
-          <div class="floor-num">G</div>
-          <div class="floor-name">Ground Floor — SD Lab</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">1</div>
-          <div class="floor-name">First Floor — Project Lab</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">2</div>
-          <div class="floor-name">Second Floor — Mech Lab</div>
-          <div class="floor-status floor-closed">Under Maintenance</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">3</div>
-          <div class="floor-name">Third Floor — ML Lab</div>
-          <div class="floor-status floor-busy">In Use</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">4</div>
-          <div class="floor-name">Fourth Floor — Server Room</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-      </div>
-      <div class="elev-footer">
-        <span>Last checked 5 mins ago</span>
-        <span class="elev-overall warn">Floor 2 Unavailable</span>
-      </div>
-    </div>
-
-    <!-- Elevator C - Admin Block -->
-    <div class="elevator-card reveal">
-      <div class="elev-header">
-        <div>
-          <div class="elev-name">Admin Block Elevator</div>
-          <div class="elev-id">Unit C — Administration</div>
-        </div>
-        <div class="status-badge status-live">Operational</div>
-      </div>
-      <div class="elev-body">
-        <div class="floor-row">
-          <div class="floor-num">G</div>
-          <div class="floor-name">Ground Floor — Reception</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">1</div>
-          <div class="floor-name">First Floor — Accounts Office</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">2</div>
-          <div class="floor-name">Second Floor — Principal Office</div>
-          <div class="floor-status floor-busy">In Use</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">3</div>
-          <div class="floor-name">Third Floor — Conference Hall</div>
-          <div class="floor-status floor-available">Available</div>
-        </div>
-      </div>
-      <div class="elev-footer">
-        <span>Last checked 1 min ago</span>
-        <span class="elev-overall ok">All Systems Normal</span>
-      </div>
-    </div>
-
-    <!-- Elevator D - Library -->
-    <div class="elevator-card reveal">
-      <div class="elev-header">
-        <div>
-          <div class="elev-name">Library Elevator</div>
-          <div class="elev-id">Unit D — Library Block</div>
-        </div>
-        <div class="status-badge status-away">Offline</div>
-      </div>
-      <div class="elev-body">
-        <div class="floor-row">
-          <div class="floor-num">G</div>
-          <div class="floor-name">Ground Floor — Main Library</div>
-          <div class="floor-status floor-closed">Offline</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">1</div>
-          <div class="floor-name">First Floor — Digital Library</div>
-          <div class="floor-status floor-closed">Offline</div>
-        </div>
-        <div class="floor-row">
-          <div class="floor-num">2</div>
-          <div class="floor-name">Second Floor — Reading Hall</div>
-          <div class="floor-status floor-closed">Offline</div>
-        </div>
-      </div>
-      <div class="elev-footer">
-        <span>Last checked 8 mins ago</span>
-        <span class="elev-overall down">System Offline — Use Stairs</span>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<hr class="section-divider"/>
-
-<!-- CAMPUS MAP -->
-<div id="navigate">
-  <div class="inner">
-    <span class="section-tag reveal">Interactive</span>
-    <h2 class="section-title reveal">Campus Map</h2>
-    <p class="section-sub reveal">Overview of the IFET campus layout. Click any building to learn more.</p>
-
-    <div class="map-wrapper reveal">
-      <div class="map-topbar">
-        <div>
-          <div class="map-topbar-title">IFET College of Engineering — Campus Layout</div>
-          <div class="map-topbar-sub">Tap a building to view details</div>
-        </div>
-        <a href="index.html" class="nav-cta" style="font-size:11px;padding:8px 16px;">Open AR View</a>
-      </div>
-      <div class="campus-svg-wrap">
-        <svg viewBox="0 0 320 520" xmlns="http://www.w3.org/2000/svg">
-          <!-- Background -->
-          <rect width="320" height="520" fill="#08050f"/>
-          <!-- Grid -->
-          <defs>
-            <pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M20 0L0 0 0 20" fill="none" stroke="rgba(139,92,246,0.05)" stroke-width="1"/>
-            </pattern>
-          </defs>
-          <rect width="320" height="520" fill="url(#g)"/>
-
-          <!-- Main vertical road -->
-          <rect x="128" y="10" width="56" height="500" class="svg-road" rx="3"/>
-          <line x1="156" y1="15" x2="156" y2="505" class="svg-road-line"/>
-          <text x="156" y="8" class="svg-label" style="fill:rgba(139,92,246,0.3);font-size:7px">MAIN ROAD</text>
-
-          <!-- Horizontal road -->
-          <rect x="184" y="218" width="120" height="46" class="svg-road" rx="3"/>
-          <line x1="194" y1="241" x2="296" y2="241" class="svg-road-line"/>
-
-          <!-- Gate road -->
-          <rect x="10" y="222" width="118" height="38" class="svg-road" rx="3"/>
-          <line x1="18" y1="241" x2="128" y2="241" class="svg-road-line" style="stroke:rgba(251,191,36,0.2)"/>
-
-          <!-- Main Gate -->
-          <rect x="10" y="226" width="32" height="30" class="svg-gate" rx="4"/>
-          <text x="26" y="244" class="svg-gate-label">GATE</text>
-
-          <!-- Buildings -->
-          <rect x="72" y="24" width="56" height="50" class="svg-bld" rx="5" onclick="showBldInfo('Class C Block','Classroom Block C — Theory lectures and tutorials for all departments.')"/>
-          <text x="100" y="47" class="svg-label">CLASS C</text>
-
-          <rect x="72" y="84" width="56" height="50" class="svg-bld" rx="5" onclick="showBldInfo('Class B Block','Classroom Block B — Lectures and tutorial rooms for 2nd and 3rd year.')"/>
-          <text x="100" y="107" class="svg-label">CLASS B</text>
-
-          <rect x="72" y="144" width="56" height="64" class="svg-bld" rx="5" onclick="showBldInfo('Class A Block','Classroom Block A — Ground and first floors with lecture halls.')"/>
-          <text x="100" y="174" class="svg-label">CLASS A</text>
-
-          <rect x="184" y="160" width="52" height="46" class="svg-bld" rx="5" onclick="showBldInfo('SD Lab','Software Development Laboratory — Computers for programming and software projects.')"/>
-          <text x="210" y="186" class="svg-label">SD LAB</text>
-
-          <rect x="200" y="275" width="52" height="52" class="svg-bld" rx="5" onclick="showBldInfo('Mech Lab','Mechanical Engineering Laboratory — Workshops and machinery.')"/>
-          <text x="226" y="304" class="svg-label">MECH LAB</text>
-
-          <rect x="258" y="215" width="48" height="52" class="svg-bld" rx="5" onclick="showBldInfo('Library','Central Library — Books, journals, digital resources and reading halls.')"/>
-          <text x="282" y="244" class="svg-label">LIBRARY</text>
-
-          <rect x="72" y="280" width="56" height="52" class="svg-bld" rx="5" onclick="showBldInfo('Project Lab','Final Year and Research Project Laboratory — Work on engineering projects.')"/>
-          <text x="100" y="308" class="svg-label">PROJECT LAB</text>
-
-          <rect x="72" y="400" width="56" height="70" class="svg-bld" rx="5" onclick="showBldInfo('Administration Block','Admin offices, principal chamber, accounts and examination section.')"/>
-          <text x="100" y="433" class="svg-label">ADMIN</text>
-          <text x="100" y="446" class="svg-label">BLOCK</text>
-
-          <!-- You are here -->
-          <circle cx="156" cy="241" r="6" class="svg-you"/>
-          <circle cx="156" cy="241" r="12" fill="none" stroke="rgba(167,139,250,0.3)" stroke-width="1">
-            <animate attributeName="r" from="8" to="20" dur="2s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" from="0.5" to="0" dur="2s" repeatCount="indefinite"/>
-          </circle>
-          <text x="156" y="264" class="svg-label" style="fill:#fbbf24;font-size:7px">YOU</text>
-
-          <!-- North -->
-          <text x="298" y="24" class="svg-label" style="fill:rgba(167,139,250,0.6);font-size:12px;font-weight:800">N</text>
-          <text x="298" y="36" class="svg-label" style="fill:rgba(167,139,250,0.4);font-size:10px">^</text>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Building info popup -->
-    <div id="bld-info" style="display:none;margin-top:16px;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:16px 20px;animation:fadeUp 0.3s ease">
-      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--p4);margin-bottom:6px" id="bld-info-name"></div>
-      <div style="font-size:13px;color:var(--text2)" id="bld-info-desc"></div>
-    </div>
-  </div>
-</div>
-
-<hr class="section-divider"/>
-
-<!-- FEEDBACK -->
-<section id="feedback">
-  <span class="section-tag reveal">Your Voice</span>
-  <h2 class="section-title reveal">Send Feedback</h2>
-  <p class="section-sub reveal">Help us improve the campus navigator. Your input matters.</p>
-
-  <div class="feedback-wrap reveal">
-    <div id="feedback-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Your Name</label>
-          <input type="text" class="form-input" placeholder="Enter your name" id="f-name"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Register Number</label>
-          <input type="text" class="form-input" placeholder="e.g. 711722104001" id="f-reg"/>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Department</label>
-          <select class="form-select" id="f-dept">
-            <option value="">Select Department</option>
-            <option>CSE</option>
-            <option>ECE</option>
-            <option>EEE</option>
-            <option>Mechanical</option>
-            <option>Civil</option>
-            <option>IT</option>
-            <option>AIDS</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Year</label>
-          <select class="form-select" id="f-year">
-            <option value="">Select Year</option>
-            <option>I Year</option>
-            <option>II Year</option>
-            <option>III Year</option>
-            <option>IV Year</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Feedback Category</label>
-        <select class="form-select" id="f-cat">
-          <option value="">Select Category</option>
-          <option>AR Navigation</option>
-          <option>Bus Tracking</option>
-          <option>Elevator Status</option>
-          <option>Campus Map</option>
-          <option>General</option>
-          <option>Bug Report</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Overall Rating</label>
-        <div class="rating-wrap" id="star-wrap">
-          <div class="star" onclick="setRating(1)">&#9733;</div>
-          <div class="star" onclick="setRating(2)">&#9733;</div>
-          <div class="star" onclick="setRating(3)">&#9733;</div>
-          <div class="star" onclick="setRating(4)">&#9733;</div>
-          <div class="star" onclick="setRating(5)">&#9733;</div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Your Feedback</label>
-        <textarea class="form-textarea" placeholder="Tell us about your experience using the campus navigator..." id="f-msg"></textarea>
-      </div>
-      <button class="submit-btn" onclick="submitFeedback()">Submit Feedback</button>
-    </div>
-
-    <div class="form-success" id="form-success">
-      <div class="form-success-icon">&#10003;</div>
-      <h3>Feedback Received</h3>
-      <p>Thank you for helping us improve IFET Navigator. We appreciate your input.</p>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-top">
-      <div>
-        <div class="footer-brand-name">IFET Navigator</div>
-        <div class="footer-college-full">IFET College of Engineering<br>An Autonomous Institution</div>
-        <div class="footer-address">
-          <strong>Address</strong>
-          NH-45, Villupuram — Cuddalore Highway,<br>
-          Gangavaram, Villupuram — 605 108,<br>
-          Tamil Nadu, India.
-        </div>
-      </div>
-      <div>
-        <div class="footer-col-title">Quick Links</div>
-        <ul class="footer-links">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#bus">Bus Tracking</a></li>
-          <li><a href="#elevator">Elevator Status</a></li>
-          <li><a href="#navigate">Campus Map</a></li>
-          <li><a href="index.html">Launch AR App</a></li>
-          <li><a href="#feedback">Feedback</a></li>
-        </ul>
-      </div>
-      <div>
-        <div class="footer-col-title">Contact</div>
-        <div class="footer-contact-item">
-          <strong>Phone</strong>
-          04146 — 225566
-        </div>
-        <div class="footer-contact-item">
-          <strong>Email</strong>
-          principal@ifet.ac.in
-        </div>
-        <div class="footer-contact-item">
-          <strong>Website</strong>
-          www.ifet.ac.in
-        </div>
-        <div class="footer-contact-item">
-          <strong>Affiliated to</strong>
-          Anna University, Chennai
-        </div>
-        <div class="footer-contact-item">
-          <strong>Established</strong>
-          2007
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <div class="footer-copy">
-        &copy; 2026 IFET College of Engineering. Built for students by students.
-      </div>
-      <div class="footer-accred">
-        <span class="accred-badge">AICTE Approved</span>
-        <span class="accred-badge">Anna University</span>
-        <span class="accred-badge">Autonomous</span>
-      </div>
-    </div>
-  </div>
-</footer>
 
 <script>
-// ── REVEAL ON SCROLL ──
-const revealEls = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      observer.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.1 });
-revealEls.forEach(el => observer.observe(el));
+// ══════════════════════════════════════════
+// CAMPUS DATA
+// Based on IFET College of Engineering map
+// Coordinates are relative offsets from gate
+// ══════════════════════════════════════════
 
-// ── STAR RATING ──
-let currentRating = 0;
-function setRating(n) {
-  currentRating = n;
-  document.querySelectorAll('.star').forEach((s, i) => {
-    s.classList.toggle('active', i < n);
+// IFET College approx center
+const CAMPUS_CENTER = { lat: 11.6843, lon: 79.7667 };
+
+const BUILDINGS = [
+  {
+    id: 'classC',
+    name: 'Class C',
+    desc: 'Classroom Block C — Lectures & Theory',
+    icon: '🏫',
+    lat: CAMPUS_CENTER.lat + 0.0009,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-classC',
+    color: '#00f5d4'
+  },
+  {
+    id: 'classB',
+    name: 'Class B',
+    desc: 'Classroom Block B — Lectures & Theory',
+    icon: '🏫',
+    lat: CAMPUS_CENTER.lat + 0.0006,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-classB',
+    color: '#00f5d4'
+  },
+  {
+    id: 'classA',
+    name: 'Class A',
+    desc: 'Classroom Block A — Lectures & Theory',
+    icon: '🏫',
+    lat: CAMPUS_CENTER.lat + 0.0003,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-classA',
+    color: '#00f5d4'
+  },
+  {
+    id: 'sdLab',
+    name: 'SD Lab',
+    desc: 'Software Development Laboratory',
+    icon: '💻',
+    lat: CAMPUS_CENTER.lat + 0.0003,
+    lon: CAMPUS_CENTER.lon + 0.0003,
+    mapId: 'bld-sdLab',
+    color: '#7209b7'
+  },
+  {
+    id: 'mechLab',
+    name: 'Mech Lab',
+    desc: 'Mechanical Engineering Laboratory',
+    icon: '⚙️',
+    lat: CAMPUS_CENTER.lat - 0.0001,
+    lon: CAMPUS_CENTER.lon + 0.0004,
+    mapId: 'bld-mechLab',
+    color: '#f72585'
+  },
+  {
+    id: 'library',
+    name: 'Library',
+    desc: 'Central Library — Books & Resources',
+    icon: '📚',
+    lat: CAMPUS_CENTER.lat + 0.0001,
+    lon: CAMPUS_CENTER.lon + 0.0006,
+    mapId: 'bld-library',
+    color: '#4cc9f0'
+  },
+  {
+    id: 'projectLab',
+    name: 'Project Lab',
+    desc: 'Final Year & Research Project Lab',
+    icon: '🔬',
+    lat: CAMPUS_CENTER.lat - 0.0003,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-projectLab',
+    color: '#f77f00'
+  },
+  {
+    id: 'admin',
+    name: 'Administration',
+    desc: 'Admin Block — Office & Principal',
+    icon: '🏢',
+    lat: CAMPUS_CENTER.lat - 0.0007,
+    lon: CAMPUS_CENTER.lon,
+    mapId: 'bld-admin',
+    color: '#e9c46a'
+  },
+  {
+    id: 'mainGate',
+    name: 'Main Gate',
+    desc: 'Main Entrance — Campus Entry Point',
+    icon: '🚪',
+    lat: CAMPUS_CENTER.lat,
+    lon: CAMPUS_CENTER.lon - 0.0004,
+    mapId: null,
+    color: '#ffd60a'
+  }
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let userLat = null, userLon = null;
+let selectedBuilding = null;
+let heading = 0;
+let cameraStream = null;
+let arActive = false;
+
+// ══════════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['list','map','ar'][i] === tab);
   });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(tab + '-panel').classList.add('active');
+
+  if (tab === 'ar') startAR();
 }
 
-// ── FEEDBACK SUBMIT ──
-function submitFeedback() {
-  const name = document.getElementById('f-name').value.trim();
-  const msg  = document.getElementById('f-msg').value.trim();
-  if (!name || !msg) {
-    alert('Please fill in your name and feedback message.');
+// ══════════════════════════════════════════
+// BUILD LIST
+// ══════════════════════════════════════════
+function buildList(filter = '') {
+  const list = document.getElementById('building-list');
+  const lower = filter.toLowerCase();
+  const filtered = BUILDINGS.filter(b =>
+    b.name.toLowerCase().includes(lower) ||
+    b.desc.toLowerCase().includes(lower)
+  );
+
+  list.innerHTML = filtered.map(b => {
+    const dist = userLat ? formatDist(getDistance(userLat, userLon, b.lat, b.lon)) : '--';
+    const sel = selectedBuilding?.id === b.id ? 'selected' : '';
+    return `
+      <div class="building-card ${sel}" onclick="selectBuilding('${b.id}')">
+        <div class="building-icon" style="background:linear-gradient(135deg,${b.color}88,${b.color}44)">${b.icon}</div>
+        <div class="building-info">
+          <div class="building-name">${b.name}</div>
+          <div class="building-desc">${b.desc}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div class="building-dist">${dist}</div>
+          <button class="nav-btn" onclick="event.stopPropagation();navigateTo('${b.id}')">NAV →</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function filterBuildings() {
+  buildList(document.getElementById('search-input').value);
+}
+
+// ══════════════════════════════════════════
+// SELECT BUILDING
+// ══════════════════════════════════════════
+function selectBuilding(id) {
+  selectedBuilding = BUILDINGS.find(b => b.id === id);
+  buildList(document.getElementById('search-input').value);
+}
+
+function selectBuildingOnMap(id) {
+  selectedBuilding = BUILDINGS.find(b => b.id === id);
+  // Highlight on map
+  document.querySelectorAll('.building-shape').forEach(s => s.classList.remove('highlighted'));
+  const el = document.getElementById('bld-' + id);
+  if (el) el.classList.add('highlighted');
+  // Show info card
+  const card = document.getElementById('map-info-card');
+  document.getElementById('mic-name').textContent = selectedBuilding.icon + ' ' + selectedBuilding.name;
+  document.getElementById('mic-desc').textContent = selectedBuilding.desc;
+  card.classList.add('visible');
+}
+
+function navigateTo(id) {
+  selectedBuilding = BUILDINGS.find(b => b.id === id);
+  switchTab('ar');
+}
+
+function navigateToSelected() {
+  if (selectedBuilding) switchTab('ar');
+}
+
+// ══════════════════════════════════════════
+// GPS
+// ══════════════════════════════════════════
+function initGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('gps-status').textContent = 'No GPS';
+    showManualLocationOption();
     return;
   }
-  document.getElementById('feedback-form').style.display = 'none';
-  document.getElementById('form-success').style.display  = 'block';
+
+  document.getElementById('gps-status').textContent = 'Locating...';
+
+  // Try with timeout
+  const gpsTimeout = setTimeout(() => {
+    if (!userLat) {
+      document.getElementById('gps-status').textContent = '⚠️ GPS Slow';
+      showManualLocationOption();
+    }
+  }, 8000);
+
+  navigator.geolocation.watchPosition(pos => {
+    clearTimeout(gpsTimeout);
+    userLat = pos.coords.latitude;
+    userLon = pos.coords.longitude;
+    document.getElementById('gps-status').textContent = 'GPS ✓';
+    // Hide manual option if showing
+    const manual = document.getElementById('manual-loc-bar');
+    if (manual) manual.style.display = 'none';
+    buildList(document.getElementById('search-input').value);
+    updateARDestination();
+  }, (err) => {
+    clearTimeout(gpsTimeout);
+    document.getElementById('gps-status').textContent = '⚠️ No GPS';
+    showManualLocationOption();
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 }
 
-// ── BUILDING INFO ──
-function showBldInfo(name, desc) {
-  const box = document.getElementById('bld-info');
-  document.getElementById('bld-info-name').textContent = name;
-  document.getElementById('bld-info-desc').textContent = desc;
-  box.style.display = 'block';
-  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+function showManualLocationOption() {
+  // Show a bar to let user set location to campus center manually
+  let bar = document.getElementById('manual-loc-bar');
+  if (bar) { bar.style.display = 'flex'; return; }
+
+  bar = document.createElement('div');
+  bar.id = 'manual-loc-bar';
+  bar.style.cssText = `
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(10,10,26,0.97);
+    border-top:1px solid #f72585;
+    padding:12px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+    z-index:9999; gap:10px;
+  `;
+  bar.innerHTML = `
+    <div style="flex:1">
+      <div style="font-family:'Orbitron',monospace;font-size:11px;color:#f72585;margin-bottom:3px">📍 GPS NOT FOUND</div>
+      <div style="font-size:11px;color:rgba(224,224,255,0.6)">Use campus center as your location?</div>
+    </div>
+    <button onclick="useManualLocation()" style="
+      background:linear-gradient(135deg,#7209b7,#f72585);
+      border:none; border-radius:10px; padding:10px 16px;
+      color:white; font-family:'Orbitron',monospace;
+      font-size:10px; font-weight:700; cursor:pointer; white-space:nowrap;
+    ">USE CAMPUS GPS</button>
+  `;
+  document.body.appendChild(bar);
 }
 
-// ── LIVE BUS SIMULATION ──
-const buses = [
-  { prog: 'b1-prog', eta: 'b1-eta', loc: 'b1-loc', progress: 72, etaMins: 12, locations: ['Near Tindivanam Toll','Tindivanam Bypass','Vikravandi Road','Ulundurpet Highway','Approaching Campus'] },
-  { prog: 'b2-prog', eta: 'b2-eta', loc: 'b2-loc', progress: 88, etaMins: 5,  locations: ['Panruti Bypass','Neyveli Junction','Vriddhachalam Road','Near Campus Gate','Arriving'] },
-  { prog: 'b3-prog', eta: 'b3-eta', loc: 'b3-loc', progress: 45, etaMins: 28, locations: ['Marakkanam Junction','Tindivanam Road','Panruti Highway','Neyveli','Villupuram'] },
-  { prog: 'b4-prog', eta: 'b4-eta', loc: 'b4-loc', progress: 28, etaMins: 52, locations: ['Melmaruvathur','Tindivanam','Vikravandi','Ulundurpet','Villupuram'] },
-];
-
-function updateBuses() {
-  const now = new Date();
-  document.getElementById('update-time').textContent =
-    now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-  buses.forEach(b => {
-    // Slowly increment progress
-    b.progress = Math.min(99, b.progress + (Math.random() * 0.3));
-    b.etaMins  = Math.max(1, b.etaMins - 0.05);
-    const locIdx = Math.min(b.locations.length - 1, Math.floor(b.progress / (100 / b.locations.length)));
-    document.getElementById(b.prog).style.width = b.progress + '%';
-    document.getElementById(b.eta).textContent  = Math.round(b.etaMins) + ' mins';
-    document.getElementById(b.loc).textContent  = b.locations[locIdx];
-  });
+function useManualLocation() {
+  // Set location to IFET College of Engineering approximate center
+  userLat = 11.6843;
+  userLon = 79.7667;
+  document.getElementById('gps-status').textContent = '📍 Campus GPS';
+  document.getElementById('manual-loc-bar').style.display = 'none';
+  buildList(document.getElementById('search-input').value);
+  updateARDestination();
+  alert('✅ Location set to IFET Campus!\nDistances are now calculated from campus center.');
 }
 
-setInterval(updateBuses, 3000);
-updateBuses();
-
-// ── ELEVATOR LIVE SIMULATION ──
-const floorStatuses = [
-  ['floor-available','floor-available','floor-busy','floor-available','floor-available'],
-  ['floor-available','floor-available','floor-closed','floor-busy','floor-available'],
-];
-const statusLabels = { 'floor-available': 'Available', 'floor-busy': 'In Use', 'floor-closed': 'Maintenance' };
-
-function randomizeElevator() {
-  // Randomly toggle between in-use and available for some floors
-  document.querySelectorAll('.elevator-card').forEach((card, ci) => {
-    if (ci >= 2) return; // Only animate first two
-    card.querySelectorAll('.floor-status').forEach((fs, fi) => {
-      if (fs.classList.contains('floor-closed')) return;
-      if (Math.random() < 0.15) {
-        const newClass = fs.classList.contains('floor-available') ? 'floor-busy' : 'floor-available';
-        fs.className = 'floor-status ' + newClass;
-        fs.textContent = statusLabels[newClass];
+// ══════════════════════════════════════════
+// COMPASS
+// ══════════════════════════════════════════
+function initCompass() {
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', e => {
+      if (e.alpha !== null) {
+        heading = e.alpha;
+        document.getElementById('ar-compass').style.transform = `rotate(${-heading}deg)`;
+        renderARMarkers();
       }
+    }, true);
+  }
+}
+
+// ══════════════════════════════════════════
+// AR CAMERA
+// ══════════════════════════════════════════
+async function startAR() {
+  if (arActive) return;
+  const video = document.getElementById('ar-video');
+  const noCam = document.getElementById('no-camera');
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
     });
+    video.srcObject = cameraStream;
+    video.style.display = 'block';
+    noCam.style.display = 'none';
+    arActive = true;
+    document.getElementById('ar-status').textContent = '📍 AR Active — Point at campus';
+    renderARMarkers();
+  } catch (err) {
+    video.style.display = 'none';
+    noCam.style.display = 'flex';
+    document.getElementById('ar-status').textContent = '❌ Camera blocked';
+  }
+}
+
+// ══════════════════════════════════════════
+// AR MARKERS
+// ══════════════════════════════════════════
+function renderARMarkers() {
+  if (!arActive || !userLat) return;
+  const container = document.getElementById('ar-markers');
+  container.innerHTML = '';
+
+  const panelEl = document.getElementById('ar-panel');
+  const W = panelEl.offsetWidth;
+  const H = panelEl.offsetHeight;
+
+  BUILDINGS.forEach(b => {
+    const bearing = getBearing(userLat, userLon, b.lat, b.lon);
+    const dist = getDistance(userLat, userLon, b.lat, b.lon);
+
+    // Only show buildings within 500m
+    if (dist > 500) return;
+
+    // Angular difference from current heading
+    let diff = bearing - heading;
+    while (diff > 180) diff -= 360;
+    while (diff < -180) diff += 360;
+
+    // Only show if within ±60 degrees of view
+    if (Math.abs(diff) > 60) return;
+
+    const x = W / 2 + (diff / 60) * (W / 2);
+    const y = H * 0.35;
+
+    const marker = document.createElement('div');
+    marker.className = 'ar-marker';
+    marker.style.left = x + 'px';
+    marker.style.top = y + 'px';
+    marker.style.borderColor = b.color;
+    marker.innerHTML = `
+      <div class="ar-marker-label" style="border-color:${b.color};color:${b.color}">
+        ${b.icon} ${b.name} — ${formatDist(dist)}
+      </div>
+      <div class="ar-marker-arrow" style="color:${b.color}">▼</div>`;
+    container.appendChild(marker);
   });
 }
-setInterval(randomizeElevator, 5000);
+
+function updateARDestination() {
+  const destEl = document.getElementById('ar-dest');
+  const noDest = document.getElementById('ar-no-dest');
+  if (selectedBuilding && userLat) {
+    const dist = getDistance(userLat, userLon, selectedBuilding.lat, selectedBuilding.lon);
+    document.getElementById('ar-dest-name').textContent = selectedBuilding.icon + ' ' + selectedBuilding.name;
+    document.getElementById('ar-dest-dist').textContent = formatDist(dist) + ' away';
+    destEl.style.display = 'block';
+    noDest.style.display = 'none';
+    document.getElementById('ar-status').textContent = '🧭 Navigating to ' + selectedBuilding.name;
+  } else if (selectedBuilding) {
+    destEl.style.display = 'block';
+    noDest.style.display = 'none';
+    document.getElementById('ar-dest-name').textContent = selectedBuilding.icon + ' ' + selectedBuilding.name;
+    document.getElementById('ar-dest-dist').textContent = 'Enable GPS for distance';
+  } else {
+    destEl.style.display = 'none';
+    noDest.style.display = 'block';
+  }
+}
+
+// ══════════════════════════════════════════
+// MATH HELPERS
+// ══════════════════════════════════════════
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function getBearing(lat1, lon1, lat2, lon2) {
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+    Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function formatDist(m) {
+  return m > 1000 ? (m/1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildList();
+initGPS();
+initCompass();
+
+// Refresh AR markers periodically
+setInterval(() => {
+  if (arActive) renderARMarkers();
+  if (arActive && selectedBuilding) updateARDestination();
+}, 1000);
 </script>
 </body>
 </html>
